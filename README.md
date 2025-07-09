@@ -42,7 +42,7 @@ npm install
 
 3. Set up environment variables:
 ```bash
-cp .env.example .env
+cp env.example .env
 # Edit .env with your Sanity project details
 ```
 
@@ -50,6 +50,14 @@ cp .env.example .env
 ```bash
 npm run dev
 ```
+
+5. (Optional) Start Sanity Studio for content management:
+```bash
+cd studio
+npm install
+npm run dev
+```
+The studio will be available at `http://localhost:3333`
 
 ## Testing
 
@@ -90,16 +98,59 @@ The project maintains 70%+ test coverage across:
 - `.github/workflows/ci.yml` - Main CI pipeline
 - `.github/workflows/deploy.yml` - Deployment pipeline
 
+## Content Management
+
+The project uses Sanity CMS for content management. The Sanity Studio is located in the `studio/` directory.
+
+### Starting Sanity Studio
+```bash
+cd studio
+npm run dev
+```
+
+### Content Types
+- **Blog Posts** - Manage blog content with rich text editor
+- **Quiz Results** - View and export user quiz submissions
+- **Images** - Upload and manage images with hotspot editing
+
+### Deployment
+```bash
+cd studio
+npm run deploy  # Deploy studio to Sanity hosting
+```
+
+## Advanced Features
+- **Testimonials**: Auto-rotating carousel with pause on hover/focus and smooth transitions.
+- **FAQ**: Expand/collapse all, animated accordion.
+
+## Seeding Example Data
+- To seed example testimonials and FAQs into Sanity:
+  - `npm run seed` — add example data
+  - `npm run seed:clear` — clear and re-seed example data
+  - Requires `SANITY_API_TOKEN` in your `.env` file
+
+## E2E Testing (Playwright)
+- Install dependencies: `npm install`
+- Start the dev server: `npm run dev`
+- In another terminal, run E2E tests:
+  - `npx playwright test`
+- E2E tests are in `playwright-tests/`
+- Config: `playwright.config.js`
+
 ## Project Structure
 
 ```
-src/
-├── __tests__/          # Test files
-├── api/               # API clients (Sanity)
-├── components/        # Reusable components
-├── pages/            # Page components
-├── utils/            # Utility functions
-└── App.jsx           # Main application
+├── src/               # Main application
+│   ├── __tests__/     # Test files
+│   ├── api/          # API clients (Sanity)
+│   ├── components/   # Reusable components
+│   ├── pages/        # Page components
+│   ├── utils/        # Utility functions
+│   └── App.jsx       # Main application
+├── studio/           # Sanity Studio for content management
+│   ├── schemaTypes/  # Content schemas
+│   └── sanity.config.js
+└── .github/          # CI/CD workflows
 ```
 
 ## Contributing

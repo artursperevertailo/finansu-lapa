@@ -1,8 +1,8 @@
-import sanityClient from '@sanity/client';
+import { createClient } from '@sanity/client';
 
-const client = sanityClient({
-  projectId: 'oqst5cr0', // replace with your project ID if different
-  dataset: 'production',
+const client = createClient({
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID || 'oqst5cr0',
+  dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
   apiVersion: '2023-07-01',
   useCdn: true, // use CDN for faster, read-only queries
 });

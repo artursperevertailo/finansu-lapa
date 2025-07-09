@@ -4,11 +4,12 @@ import App from './App.jsx'
 import './index.css'
 import { BrowserRouter } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
 
 Sentry.init({
   dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0', // TODO: Replace with your real Sentry DSN
-  integrations: [new BrowserTracing()],
+  integrations: [
+    Sentry.browserTracingIntegration(),
+  ],
   tracesSampleRate: 1.0,
 });
 

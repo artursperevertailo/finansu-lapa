@@ -477,7 +477,358 @@ const ContactSection = () => {
     );
 };
 
-export { ContactSection, ErrorBoundary, QuizSection, BlogSection, BlogPostPage, ThankYouPage, PrivacyPolicyPage, NotFoundPage };
+// Testimonials Section
+const TestimonialsSection = () => {
+  const [testimonials, setTestimonials] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const autoRotateInterval = 6000; // ms
+
+  useEffect(() => {
+    client.fetch(`*[_type == "testimonial"]|order(publishedAt desc)[0...6]{
+      _id,
+      name,
+      quote,
+      company,
+      image,
+      rating,
+      publishedAt
+    }`).then(setTestimonials).catch(() => setError('Neizdevās ielādēt atsauksmes.')).finally(() => setLoading(false));
+  }, []);
+
+  // Auto-rotation effect
+  useEffect(() => {
+    if (testimonials.length < 2) return;
+    if (isPaused) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    }, autoRotateInterval);
+    return () => clearInterval(timer);
+  }, [testimonials.length, isPaused]);
+
+  const nextTestimonial = () => {
+    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+  };
+
+  const prevTestimonial = () => {
+    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  };
+
+  const goToTestimonial = (index) => {
+    setCurrentIndex(index);
+  };
+
+  // Pause on hover/focus
+  const handlePause = () => setIsPaused(true);
+  const handleResume = () => setIsPaused(false);
+
+  if (loading) return (
+    <section id="testimonials" className="section-padding bg-brand-bg">
+      <div className="container">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
+          <p className="mt-4 text-gray-600">Ielādē atsauksmes...</p>
+        </div>
+      </div>
+    </section>
+  );
+
+  if (error) return (
+    <section id="testimonials" className="section-padding bg-brand-bg">
+      <div className="container">
+        <div className="text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    </section>
+  );
+
+  if (testimonials.length === 0) return null;
+
+  return (
+    <section id="testimonials" className="section-padding bg-brand-bg">
+      <div className="container">
+        <FadeInElement className="text-center mb-16">
+          <h2>Klientu atsauksmes</h2>
+          <p className="text-xl text-gray-600 mt-4">Ko saka mūsu klienti</p>
+        </FadeInElement>
+
+        <div
+          className="relative max-w-4xl mx-auto"
+          onMouseEnter={handlePause}
+          onMouseLeave={handleResume}
+          onFocus={handlePause}
+          onBlur={handleResume}
+          tabIndex={0}
+        >
+          {/* Carousel Container */}
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div
+              className="flex transition-transform duration-700 ease-in-out"
+              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+            >
+              {testimonials.map((testimonial, index) => (
+                <div key={testimonial._id} className="w-full flex-shrink-0 p-8 md:p-12 transition-opacity duration-700" style={{ opacity: index === currentIndex ? 1 : 0.5 }}>
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                    {/* Image */}
+                    <div className="flex-shrink-0">
+                      {testimonial.image ? (
+                        <img
+                          src={testimonial.image.asset.url}
+                          alt={testimonial.name}
+                          className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-lg"
+                        />
+                      ) : (
+                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center shadow-lg">
+                          <span className="text-white text-2xl font-bold">{testimonial.name.charAt(0)}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 text-center md:text-left">
+                      {/* Quote */}
+                      <blockquote className="text-lg md:text-xl text-gray-700 mb-6 italic transition-all duration-700">
+                        "{testimonial.quote}"
+                      </blockquote>
+
+                      {/* Rating */}
+                      <div className="flex justify-center md:justify-start mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className={`text-2xl ${i < testimonial.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                            ★
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Author */}
+                      <div>
+                        <h4 className="font-semibold text-lg text-gray-900">{testimonial.name}</h4>
+                        {testimonial.company && (
+                          <p className="text-gray-600">{testimonial.company}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Navigation Buttons */}
+            {testimonials.length > 1 && (
+              <>
+                <button
+                  onClick={prevTestimonial}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                  aria-label="Iepriekšējā atsauksme"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={nextTestimonial}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                  aria-label="Nākamā atsauksme"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Dots Indicator */}
+          {testimonials.length > 1 && (
+            <div className="flex justify-center mt-8 space-x-2">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToTestimonial(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                    index === currentIndex ? 'bg-brand scale-125' : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Dotācija uz atsauksmi ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// FAQ Section
+const FAQSection = () => {
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [expandedFaqs, setExpandedFaqs] = useState(new Set());
+
+  useEffect(() => {
+    client.fetch(`*[_type == "faq"]|order(order asc){
+      _id,
+      question,
+      answer,
+      order,
+      category
+    }`).then(setFaqs).catch(() => setError('Neizdevās ielādēt jautājumus.')).finally(() => setLoading(false));
+  }, []);
+
+  const toggleFaq = (faqId) => {
+    setExpandedFaqs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(faqId)) {
+        newSet.delete(faqId);
+      } else {
+        newSet.add(faqId);
+      }
+      return newSet;
+    });
+  };
+
+  // Group FAQs by category
+  const groupedFaqs = faqs.reduce((acc, faq) => {
+    const category = faq.category || 'Citi';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(faq);
+    return acc;
+  }, {});
+
+  // Filter FAQs based on search and category
+  const filteredFaqs = Object.entries(groupedFaqs).reduce((acc, [category, categoryFaqs]) => {
+    if (selectedCategory === 'all' || category === selectedCategory) {
+      const filtered = categoryFaqs.filter(faq =>
+        faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      if (filtered.length > 0) {
+        acc[category] = filtered;
+      }
+    }
+    return acc;
+  }, {});
+
+  const categories = ['all', ...Object.keys(groupedFaqs)];
+
+  if (loading) return (
+    <section id="faq" className="section-padding">
+      <div className="container">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
+          <p className="mt-4 text-gray-600">Ielādē jautājumus...</p>
+        </div>
+      </div>
+    </section>
+  );
+
+  if (error) return (
+    <section id="faq" className="section-padding">
+      <div className="container">
+        <div className="text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    </section>
+  );
+
+  return (
+    <section id="faq" className="section-padding">
+      <div className="container">
+        <FadeInElement className="text-center mb-16">
+          <h2>Biežāk uzdotie jautājumi</h2>
+          <p className="text-xl text-gray-600 mt-4">Atbildes uz populārākajiem jautājumiem</p>
+        </FadeInElement>
+
+        {/* Search and Filter */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Input */}
+            <div className="flex-1">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Meklēt jautājumus..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+                />
+                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div className="md:w-48">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              >
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {category === 'all' ? 'Visas kategorijas' : category}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* FAQs */}
+        <div className="max-w-4xl mx-auto">
+          {Object.keys(filteredFaqs).length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">Nav atrasts neviens jautājums ar šiem kritērijiem.</p>
+            </div>
+          ) : (
+            Object.entries(filteredFaqs).map(([category, categoryFaqs]) => (
+              <div key={category} className="mb-8">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">{category}</h3>
+                <div className="space-y-4">
+                  {categoryFaqs.map((faq) => (
+                    <div key={faq._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                      <button
+                        onClick={() => toggleFaq(faq._id)}
+                        className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <span className="font-medium text-gray-900">{faq.question}</span>
+                        <svg
+                          className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+                            expandedFaqs.has(faq._id) ? 'rotate-180' : ''
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {expandedFaqs.has(faq._id) && (
+                        <div className="px-6 pb-4">
+                          <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export { ContactSection, ErrorBoundary, QuizSection, BlogSection, BlogPostPage, ThankYouPage, PrivacyPolicyPage, NotFoundPage, TestimonialsSection, FAQSection };
 
 const QuizSection = () => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -806,6 +1157,8 @@ export default function App() {
               <ServicesSection />
               <HowItWorksSection />
               <CalculatorSection />
+              <SectionErrorBoundary><TestimonialsSection /></SectionErrorBoundary>
+              <SectionErrorBoundary><FAQSection /></SectionErrorBoundary>
               <SectionErrorBoundary><BlogSection /></SectionErrorBoundary>
               <SectionErrorBoundary><ContactSection /></SectionErrorBoundary>
               <SectionErrorBoundary><QuizSection /></SectionErrorBoundary>

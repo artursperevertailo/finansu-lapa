@@ -1,11 +1,11 @@
-import sanityClient from '@sanity/client';
+import { createClient } from '@sanity/client';
 
-const client = sanityClient({
-  projectId: 'oqst5cr0', // replace with your project ID
-  dataset: 'production',
+const client = createClient({
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID || 'oqst5cr0',
+  dataset: import.meta.env.VITE_SANITY_DATASET || 'production',
   apiVersion: '2023-07-01',
   useCdn: false,
-  token: process.env.SANITY_API_TOKEN, // set this in your environment for write access
+  token: import.meta.env.VITE_SANITY_API_TOKEN, // set this in your environment for write access
 });
 
 export async function POST(request) {

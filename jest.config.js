@@ -5,6 +5,9 @@ export default {
   },
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
   setupFiles: ['./util/text-encoder-polyfill.js', './util/intersection-observer-polyfill.js'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(@sanity|vite)/)',
+  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx}',
     '!src/main.jsx',
@@ -20,6 +23,15 @@ export default {
       functions: 70,
       lines: 70,
       statements: 70,
+    },
+  },
+  globals: {
+    'import.meta': {
+      env: {
+        VITE_SANITY_PROJECT_ID: 'oqst5cr0',
+        VITE_SANITY_DATASET: 'production',
+        VITE_SANITY_API_TOKEN: 'test-token',
+      },
     },
   },
 }; 
